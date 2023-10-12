@@ -15,12 +15,17 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Docissue = await hre.ethers.getContractFactory("Docissue");
-  const docissue = await Docissue.deploy(process.env.SISMO_APP_ID);
+  const docissue = await hre.ethers.deployContract("Docissue");
 
-  await docissue.deployed();
+  await docissue.waitForDeployment();
 
-  console.log("Docissue deployed to:", docissue.address);
+  // We get the contract to deploy
+  // const tableland = await hre.ethers.deployContract("Tableland");
+
+  // await tableland.waitForDeployment();
+
+  console.log("Docissue deployed to:", docissue.target);
+  // console.log("Tableland deployed to:", tableland.target);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

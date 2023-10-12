@@ -1,15 +1,18 @@
 {
   "name": "hardhat-project",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
     "chai": "^4.3.10",
     "ethereum-waffle": "^3.4.4",
-    "ethers": "^5.7.2",
+    "ethers": "^6.7.1",
     "hardhat": "^2.18.0"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "4.9.3",
     "@sismo-core/sismo-connect-solidity": "^0.0.21",
+    "@tableland/evm": "^4.3.0",
     "dotenv": "^16.3.1"
   }
 }
