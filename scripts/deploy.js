@@ -3,8 +3,8 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
-require('dotenv').config()
+const hre = require("hardhat")
+require("dotenv").config()
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -15,16 +15,16 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const docissue = await hre.ethers.deployContract("Docissue");
+  const theRegistry = await hre.ethers.deployContract("TheRegistry")
 
-  await docissue.waitForDeployment();
+  await theRegistry.waitForDeployment()
 
   // We get the contract to deploy
   // const tableland = await hre.ethers.deployContract("Tableland");
 
   // await tableland.waitForDeployment();
 
-  console.log("Docissue deployed to:", docissue.target);
+  console.log("TheRegistry deployed to:", theRegistry.target)
   // console.log("Tableland deployed to:", tableland.target);
 }
 
@@ -33,6 +33,6 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+    console.error(error)
+    process.exit(1)
+  })

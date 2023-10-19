@@ -7,7 +7,7 @@ import "@tableland/evm/contracts/utils/SQLHelpers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Docissue is SismoConnect, ERC721Holder {
+contract TheRegistry is SismoConnect, ERC721Holder {
     bytes16 private _appId = 0xd6e0a23df3d426bf3b5f232ff4c69058;
     uint256 public issuerTableId;
     uint256 public docTableId;
