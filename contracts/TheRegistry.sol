@@ -7,12 +7,12 @@ import "@tableland/evm/contracts/utils/SQLHelpers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TheRegistry is SismoConnect, ERC721Holder {
+contract TheRegister is SismoConnect, ERC721Holder {
     bytes16 private _appId = 0xd6e0a23df3d426bf3b5f232ff4c69058;
     uint256 public issuerTableId;
     uint256 public docTableId;
-    string private constant _TABLE_1_PREFIX = "issuers";
-    string private constant _TABLE_2_PREFIX = "documents";
+    string private constant _TABLE_1_PREFIX = "t_1";
+    string private constant _TABLE_2_PREFIX = "t_2";
     // bool private _isImpersonationMode = true;
 
     constructor() SismoConnect(buildConfig(_appId)) {
@@ -21,7 +21,10 @@ contract TheRegistry is SismoConnect, ERC721Holder {
         address(this),
         SQLHelpers.toCreateFromSchema(
           "id integer primary key," // Notice the trailing comma
-
+          "name text,"
+          "website text,"
+          "description text,"
+          "image text,"
           "twitter text",
           _TABLE_1_PREFIX
         ));
@@ -31,9 +34,10 @@ contract TheRegistry is SismoConnect, ERC721Holder {
         address(this),
         SQLHelpers.toCreateFromSchema(
           "id integer primary key," // Notice the trailing comma
-          "name text,"
-          "cid text,",
-          // "type int,",
+          "title text,"
+          "receiver text,"
+          "cid text,"
+          "twitter text",
           _TABLE_2_PREFIX
         ));
     }
@@ -43,7 +47,8 @@ contract TheRegistry is SismoConnect, ERC721Holder {
         bytes memory sismoConnectResponse,
         string memory name,
         string memory website,
-        string memory description
+        string memory description,
+        string memory image
     ) public {
         SismoConnectVerifiedResult memory result = verify({
             responseBytes: sismoConnectResponse,
@@ -65,14 +70,15 @@ contract TheRegistry is SismoConnect, ERC721Holder {
           SQLHelpers.toInsert(
             _TABLE_1_PREFIX,
             issuerTableId,
-            "id,name,website,description,twitter",
+            "name,website,description,image,twitter",
             string.concat(
-              "1,",
               SQLHelpers.quote(name),
               ",",
               SQLHelpers.quote(website),
               ",",
               SQLHelpers.quote(description),
+              ",",
+              SQLHelpers.quote(image),
               ",",
               SQLHelpers.quote(Strings.toHexString(twitterId)) // Wrap strings in single quotes with the `quote` method
             )
@@ -82,41 +88,40 @@ contract TheRegistry is SismoConnect, ERC721Holder {
 
     // Create a new document for the dApp
     function uploadDocument(
-        // bytes memory sismoConnectResponse,
+        bytes memory sismoConnectResponse,
         string memory title,
-        string memory cid
-        // int8 docType
+        string memory cid,
+        address receiver
     ) public {
-        // SismoConnectVerifiedResult memory result = verify({
-        //     responseBytes: sismoConnectResponse,
-        //     // we want users to prove that they own a Twitter account
-        //     // we are recreating the auth request made in the frontend to be sure that
-        //     // the proofs provided in the response are valid with respect to this auth request
-        //     auth: buildAuth({authType: AuthType.TWITTER})
-        // });
+        SismoConnectVerifiedResult memory result = verify({
+            responseBytes: sismoConnectResponse,
+            // we want users to prove that they own a Twitter account
+            // we are recreating the auth request made in the frontend to be sure that
+            // the proofs provided in the response are valid with respect to this auth request
+            auth: buildAuth({authType: AuthType.TWITTER})
+        });
 
-        // uint256 twitterId = SismoConnectHelper.getUserId(
-        //     result,
-        //     AuthType.TWITTER
-        // );
+        uint256 twitterId = SismoConnectHelper.getUserId(
+            result,
+            AuthType.TWITTER
+        );
 
         // Create a new issuer by inserting their details into the issuers table
         TablelandDeployments.get().mutate(
           address(this),
           docTableId,
           SQLHelpers.toInsert(
-            _TABLE_1_PREFIX,
+            _TABLE_2_PREFIX,
             docTableId,
-            "id,title,cid,docType",
+            "title,receiver,cid,twitter",
             string.concat(
-              "1,",
               SQLHelpers.quote(title),
               ",",
-              SQLHelpers.quote(cid)
-            //   ",",
-              // docType,
-              // ",",
-            //   SQLHelpers.quote(Strings.toHexString(twitterId)) // Wrap strings in single quotes with the `quote` method
+              SQLHelpers.quote(Strings.toHexString(receiver)),
+              ",",
+              SQLHelpers.quote(cid),
+              ",",
+              SQLHelpers.quote(Strings.toHexString(twitterId)) // Wrap strings in single quotes with the `quote` method
             )
           )
         );
