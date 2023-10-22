@@ -24,6 +24,7 @@ contract TheRegistry is SismoConnect, ERC721Holder {
         SQLHelpers.toCreateFromSchema(
           "id integer primary key," // Notice the trailing comma
           "name text,"
+          "creator text,"
           "website text,"
           "description text,"
           "image text,"
@@ -39,6 +40,7 @@ contract TheRegistry is SismoConnect, ERC721Holder {
           "title text,"
           "receiver text,"
           "cid text,"
+          "encryptData text,"
           "twitter text",
           _DOCUMENTS_PREFIX
         ));
@@ -60,6 +62,7 @@ contract TheRegistry is SismoConnect, ERC721Holder {
     function createIssuer(
         bytes memory sismoConnectResponse,
         string memory name,
+        string memory creator,
         string memory website,
         string memory description,
         string memory image
@@ -84,9 +87,11 @@ contract TheRegistry is SismoConnect, ERC721Holder {
           SQLHelpers.toInsert(
             _ISSUERS_PREFIX,
             issuerTableId,
-            "name,website,description,image,twitter",
+            "name,creator,website,description,image,twitter",
             string.concat(
               SQLHelpers.quote(name),
+              ",",
+              SQLHelpers.quote(creator),
               ",",
               SQLHelpers.quote(website),
               ",",
@@ -105,7 +110,8 @@ contract TheRegistry is SismoConnect, ERC721Holder {
         bytes memory sismoConnectResponse,
         string memory title,
         string memory cid,
-        address receiver
+        address receiver,
+        string memory encryptData
     ) public {
         SismoConnectVerifiedResult memory result = verify({
             responseBytes: sismoConnectResponse,
@@ -127,7 +133,7 @@ contract TheRegistry is SismoConnect, ERC721Holder {
           SQLHelpers.toInsert(
             _DOCUMENTS_PREFIX,
             docTableId,
-            "title,receiver,cid,twitter",
+            "title,receiver,cid,twitter,encryptData",
             string.concat(
               SQLHelpers.quote(title),
               ",",
@@ -135,7 +141,9 @@ contract TheRegistry is SismoConnect, ERC721Holder {
               ",",
               SQLHelpers.quote(cid),
               ",",
-              SQLHelpers.quote(Strings.toHexString(twitterId)) // Wrap strings in single quotes with the `quote` method
+              SQLHelpers.quote(Strings.toHexString(twitterId)),
+              ",",
+              SQLHelpers.quote(encryptData)
             )
           )
         );
