@@ -7,15 +7,17 @@ import "@tableland/evm/contracts/utils/SQLHelpers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TheRegister is SismoConnect, ERC721Holder {
+contract TheRegistry is SismoConnect, ERC721Holder {
     bytes16 private _appId = 0xd6e0a23df3d426bf3b5f232ff4c69058;
     uint256 public issuerTableId;
     uint256 public docTableId;
-    string private constant _TABLE_1_PREFIX = "t_1";
-    string private constant _TABLE_2_PREFIX = "t_2";
-    // bool private _isImpersonationMode = true;
+    uint256 public requestsTableId;
+    string private constant _ISSUERS_PREFIX = "issuers";
+    string private constant _DOCUMENTS_PREFIX = "documents";
+    string private constant _REQUESTS_PREFIX = "requests";
+    bool private _isImpersonationMode = true;
 
-    constructor() SismoConnect(buildConfig(_appId)) {
+    constructor() SismoConnect(buildConfig(_appId, _isImpersonationMode)) {
       // Create a new issuers table to store issuer details
       issuerTableId = TablelandDeployments.get().create(
         address(this),
@@ -26,7 +28,7 @@ contract TheRegister is SismoConnect, ERC721Holder {
           "description text,"
           "image text,"
           "twitter text",
-          _TABLE_1_PREFIX
+          _ISSUERS_PREFIX
         ));
 
       // Create a new documents table to store the cid and metadata of the documents
@@ -38,7 +40,19 @@ contract TheRegister is SismoConnect, ERC721Holder {
           "receiver text,"
           "cid text,"
           "twitter text",
-          _TABLE_2_PREFIX
+          _DOCUMENTS_PREFIX
+        ));
+
+      // Create a new requests table to store user requests for documents from issuers
+      requestsTableId = TablelandDeployments.get().create(
+        address(this),
+        SQLHelpers.toCreateFromSchema(
+          "id integer primary key," // Notice the trailing comma
+          "encryptedEmail text,"
+          "cipher text,"
+          "userAddress text,"
+          "issuerId text",
+          _REQUESTS_PREFIX
         ));
     }
 
@@ -68,7 +82,7 @@ contract TheRegister is SismoConnect, ERC721Holder {
           address(this),
           issuerTableId,
           SQLHelpers.toInsert(
-            _TABLE_1_PREFIX,
+            _ISSUERS_PREFIX,
             issuerTableId,
             "name,website,description,image,twitter",
             string.concat(
@@ -111,7 +125,7 @@ contract TheRegister is SismoConnect, ERC721Holder {
           address(this),
           docTableId,
           SQLHelpers.toInsert(
-            _TABLE_2_PREFIX,
+            _DOCUMENTS_PREFIX,
             docTableId,
             "title,receiver,cid,twitter",
             string.concat(
@@ -122,6 +136,34 @@ contract TheRegister is SismoConnect, ERC721Holder {
               SQLHelpers.quote(cid),
               ",",
               SQLHelpers.quote(Strings.toHexString(twitterId)) // Wrap strings in single quotes with the `quote` method
+            )
+          )
+        );
+    }
+
+    // Create a new request
+    function requestDocument(
+        string memory encryptedEmail,
+        string memory cipher,
+        string memory issuerId,
+        address userAddress
+    ) public {
+        // Create a new issuer by inserting their details into the issuers table
+        TablelandDeployments.get().mutate(
+          address(this),
+          requestsTableId,
+          SQLHelpers.toInsert(
+            _REQUESTS_PREFIX,
+            requestsTableId,
+            "encryptedEmail,cipher,userAddress,issuerId",
+            string.concat(
+              SQLHelpers.quote(encryptedEmail),
+              ",",
+              SQLHelpers.quote(cipher),
+              ",",
+              SQLHelpers.quote(Strings.toHexString(userAddress)),
+              ",",
+              SQLHelpers.quote(issuerId)
             )
           )
         );
